@@ -7,7 +7,7 @@ from .models import User
 
 
 class CustomUserAdmin(UserAdmin):
-    """Define the admin pages for users."""
+    """Define a pagina de admin."""
     model = User
     ordering = ['id']
     list_display = ['email', 'is_staff', 'is_active']
