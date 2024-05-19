@@ -71,7 +71,7 @@ class DetailMovieView(CreateAPIView):
 class AddMovieView(ListCreateAPIView):
     """Adiciona o filme ao banco de dados."""
     queryset = Movies.objects.all()
-    serializer_class = DetailMovieSerializer
+    serializer_class = PersonalMovieListSerializer
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -121,7 +121,8 @@ class AddMovieView(ListCreateAPIView):
 class PersonalMovieListView(ModelViewSet):
     """Viewset para os filmes que estão no banco de dados."""
     queryset = Movies.objects.all()
-    serializer_class = DetailMovieSerializer
+    serializer_class = PersonalMovieListSerializer
     
-    
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user).order_by('-id')
     

@@ -8,8 +8,9 @@ from app.models import Movies
 class PersonalMovieListSerializer(serializers.ModelSerializer):
     """Serializer para o model movies API."""
     class Meta:
-        fields = ('name','description', 'rating', 'datePublished', 'url', 'keywords', 'duration')
         model = Movies
+        fields = ['id', 'name', 'description', 'rating', 'poster' , 'url' , 'datePublished', 'keywords', 'duration']
+
         
         
 class MoviesSerializer(serializers.Serializer):
@@ -37,11 +38,6 @@ class DetailMovieSerializer(serializers.Serializer):
     duration = serializers.CharField()    
     add_to_db = serializers.SerializerMethodField()
     
-    
-    def create(self, validated_data):
-        """Cria o modelo no banco de dados baseado no serializer."""
-        return Movies.objects.create(**validated_data)
-
     
     def get_add_to_db(self, obj):
         """Adiciona o filme no banco de dados pela url."""

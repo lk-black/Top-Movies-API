@@ -45,14 +45,14 @@ class User(AbstractUser):
 class Movies(models.Model):
     """Modelo de banco de dados para movies API."""
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField()
-    url = models.URLField()
-    poster = models.URLField()
-    description = models.CharField()
+    name = models.CharField(default='N/A')
+    url = models.URLField(default='N/A')
+    poster = models.URLField(default='N/A')
+    description = models.TextField(default='N/A', null=True, blank=True)
     rating = models.FloatField(default=1.0)
     datePublished = models.DateField()
-    keywords = models.CharField()
-    duration = models.CharField()
+    keywords = models.CharField(default='N/A')
+    duration = models.CharField(default='N/A')
 
     def __str__(self):
         return self.name
