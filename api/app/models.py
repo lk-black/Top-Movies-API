@@ -41,4 +41,18 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-    
+
+class Movies(models.Model):
+    """Modelo de banco de dados para movies API."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField()
+    url = models.URLField()
+    poster = models.URLField()
+    description = models.CharField()
+    rating = models.FloatField(default=1.0)
+    datePublished = models.DateField()
+    keywords = models.CharField()
+    duration = models.CharField()
+
+    def __str__(self):
+        return self.name

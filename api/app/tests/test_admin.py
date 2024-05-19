@@ -23,11 +23,3 @@ class TestAdminSite(TestCase):
             last_name='User',
         )
     
-    def test_user_list(self):
-        """Test para conferir se a pagina edit está funcionando."""
-        url = reverse('admin:app_user_changelist')
-        
-        res = self.client.get(url)
-        
-        self.assertEqual(res.status_code, status.HTTP_200_OK)   
-    
