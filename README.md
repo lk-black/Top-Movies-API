@@ -1,0 +1,1 @@
+Uma API que faz uma busca de filmes pelo nome em tempo real no site do IDMB, lista os resultados e te da a opção de ver os detalhes do filme e adiciona-lo em um banco de dados particular separado por "users".
