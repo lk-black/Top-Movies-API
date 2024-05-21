@@ -5,16 +5,16 @@ from rest_framework import serializers
 from app.models import Movies
 
 
-class PersonalMovieListSerializer(serializers.ModelSerializer):
+class MovieSerializer(serializers.ModelSerializer):
     """Serializer para o model movies API."""
-    
+
     class Meta:
         model = Movies
         fields = ['id', 'name', 'description', 'rating', 'poster' , 'url' , 'datePublished', 'keywords', 'duration']
-
-        
-class MoviesSerializer(serializers.Serializer):
-    """Serializa a lista de filmes encontrados."""
+    
+    
+class ScraperMovieSerializer(serializers.Serializer):
+    """Serializer para a lista de filmes encontrados."""
     
     name = serializers.CharField()
     url = serializers.CharField()
@@ -24,24 +24,4 @@ class MoviesSerializer(serializers.Serializer):
     def get_details(self, obj):
         """Método para criar um link que redireciona para os detalhes do filme."""
         request = self.context.get('request')
-        return request.build_absolute_uri(f'/api/movies/details/?url={obj["url"]}')
-    
- 
-class DetailMovieSerializer(serializers.Serializer):    
-    """Serializa os detalhes de um filme especifico."""
-    
-    name = serializers.CharField()
-    description = serializers.CharField()
-    rating = serializers.FloatField()
-    url = serializers.CharField()
-    poster = serializers.URLField()
-    datePublished = serializers.DateField()
-    keywords = serializers.CharField()
-    duration = serializers.CharField()    
-    add_to_db = serializers.SerializerMethodField()
-    
-    
-    def get_add_to_db(self, obj):
-        """Adiciona o filme no banco de dados pela url."""
-        request = self.context.get('request')
-        return request.build_absolute_uri(f'/api/movies/add/?url={obj["url"]}')
+        return request.build_absolute_uri(f'/api/movies/scrape_movie_url/?url={obj["url"]}')

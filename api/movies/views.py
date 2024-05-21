@@ -2,76 +2,26 @@
 Configuração de views para movie API. 
 """
 from drf_spectacular.utils import extend_schema ,OpenApiParameter
+
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.generics import CreateAPIView, ListCreateAPIView, get_object_or_404
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import MoviesSerializer, PersonalMovieListSerializer, DetailMovieSerializer
+
+from .serializers import ScraperMovieSerializer, MovieSerializer
 from .movies import ScrapperIMBD
 from app.models import Movies
 
-
-class ListMoviesView(APIView):
-    """Lista os resultados do movie API."""
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='query',
-                description='Busca por título de filme',
-                required=True,
-                type=str
-            ),
-        ],
-        responses={200: MoviesSerializer(many=True)}
-    )
-    def get(self, request, format=None):
-        """Função responsável por fazer a busca no site IMDB e listar os resultados."""
-        
-        query = request.query_params.get('query', '')
-        if not query:
-            return ValueError('Erro, o parâmetro query deve ser preenchido!')
-        
-        imdb = ScrapperIMBD()
-        movies = imdb.search_by_name(query=query)
-        serializer = MoviesSerializer(movies, many=True, context={"request": request})
-        return Response(serializer.data)
-
-
-class DetailMovieView(CreateAPIView):
-    """Lista os detalhes do filme pela URL."""
-    queryset = Movies.objects.all()
-    serializer_class = DetailMovieSerializer
     
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='url',
-                description='Busca pelo url do filme.',
-                required=True,
-                type=str
-            ),
-        ],
-        responses={200: DetailMovieSerializer},
-    )
-    def get(self, request, format=None):
-        """Função responsável por fazer o scraper do filme pela URL do IMDB e listar os detalhes."""
-        
-        url = request.query_params.get('url', '')
-        if not url:
-            return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        imdb = ScrapperIMBD()
-        movie_details = imdb.get(url=url)
-        serializer = DetailMovieSerializer(movie_details, context={"request": request})
-        return Response(serializer.data)
-    
-
-class AddMovieView(ListCreateAPIView):
-    """Adiciona o filme ao banco de dados."""
+class MoviesAPIView(ModelViewSet):
+    """Viewset para os filmes que estão no banco de dados."""
     queryset = Movies.objects.all()
-    serializer_class = PersonalMovieListSerializer
+    serializer_class = MovieSerializer
+    
+    def get_queryset(self):
+        """Filtra os resultados dos filmes no banco de dados para serem respectivos ao usuário logado."""
+        return self.queryset.filter(user=self.request.user).order_by('-id')
     
     @extend_schema(
         parameters=[
@@ -84,13 +34,13 @@ class AddMovieView(ListCreateAPIView):
         ],
         responses={201: 'Filme adicionado com sucesso', 400: 'Erro nos parâmetros',
                    409: 'Filme já existe', 401: 'Usuário não autorizado.'}
-    )
-    def post(self, request, format=None):
-        """Cria e salva o filme pela url no banco de dados."""
-        
+    )    
+    def create(self, request, *args, **kwargs):
+        """Cria e retorna um novo filme pela sua URL do IMDB."""
         url = request.query_params.get('url', '')
         if not url:
-            return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'},
+                            status=status.HTTP_400_BAD_REQUEST)
         
         if Movies.objects.filter(url=url).exists():
             return Response({'error': 'Filme já existe no banco de dados'}, status=status.HTTP_409_CONFLICT)
@@ -102,7 +52,7 @@ class AddMovieView(ListCreateAPIView):
         
         if not request.user.is_authenticated:
             return Response({'error': 'Usuário não registrado'}, status=status.HTTP_401_UNAUTHORIZED)
-
+        
         movie = Movies(
             user = request.user,
             name=movie_details['name'],
@@ -117,14 +67,51 @@ class AddMovieView(ListCreateAPIView):
         movie.save()
         
         return Response({'success': 'Filme adicionado com sucesso'}, status=status.HTTP_201_CREATED)
-
-
-class PersonalMovieListView(ModelViewSet):
-    """Viewset para os filmes que estão no banco de dados."""
-    queryset = Movies.objects.all()
-    serializer_class = PersonalMovieListSerializer
     
-    def get_queryset(self):
-        """Filtra os resultados dos filmes no banco de dados para serem respectivos ao usuário logado."""
-        return self.queryset.filter(user=self.request.user).order_by('-id')
+    @extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name='query',
+            description='Busca por título de filme',
+            required=True,
+            type=str
+        ),
+    ],
+    responses={200: ScraperMovieSerializer(many=True)}
+    )
+    @action(detail=False, methods=['get'], url_name='scrape-movies-name')
+    def scrape_movies_name(self, request):
+        """Lista os filmes raspados do IMDB com base no nome fornecido."""
+        query = request.query_params.get('query', '')
+        
+        if not query:
+            return ValueError('Erro, o parâmetro query deve ser preenchido!')
+        
+        imdb = ScrapperIMBD()
+        movies = imdb.search_by_name(query=query)
+        serializer = ScraperMovieSerializer(movies, many=True, context={"request": request})
+        return Response(serializer.data)
     
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='url',
+                description='Busca pelo url do filme.',
+                required=True,
+                type=str
+            ),
+        ],
+        responses={200: ScraperMovieSerializer},
+    )
+    @action(detail=False, methods=['get', 'post'])
+    def scrape_movie_url(self, request):
+        """Lista os detalhes do filme pela URL."""
+        url = request.query_params.get('url', '')
+        if not url:
+            return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        imdb = ScrapperIMBD()
+        movie_details = imdb.get(url=url)
+        serializer = self.serializer_class(movie_details, context={"request": request})
+        return Response(serializer.data)
