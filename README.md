@@ -1,0 +1,1 @@
+Uma API que faz a busca de filmes pelo nome em tempo real no site do IDMB, lista os resultados e te da a opção de ver os detalhes do filme como descrição, reviews, e adiciona-lo em um banco de dados particular, onde você pode adicionar novos filmes, ler, atualizar, e excluir os filmes conforme desejado.
