@@ -30,6 +30,7 @@ class ManagerUser(BaseUserManager):
 
 class User(AbstractUser):
     """Usuário do sistema"""
+    
     username = None
     email = models.EmailField(unique=True)
     
@@ -44,15 +45,16 @@ class User(AbstractUser):
 
 class Movies(models.Model):
     """Modelo de banco de dados para movies API."""
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(default='N/A')
-    url = models.URLField(default='N/A')
-    poster = models.URLField(default='N/A')
-    description = models.TextField(default='N/A', null=True, blank=True)
+    name = models.CharField(max_length=255)
+    url = models.URLField(max_length=255)
+    poster = models.URLField(null=True, blank=True)
+    description = models.TextField(default='N/A', blank=True, null=True)
     rating = models.FloatField(default=1.0)
     datePublished = models.DateField()
-    keywords = models.CharField(default='N/A')
-    duration = models.CharField(default='N/A')
+    keywords = models.CharField(null=True, blank=True)
+    duration = models.CharField(null=True, blank=True)
 
     def __str__(self):
         return self.name

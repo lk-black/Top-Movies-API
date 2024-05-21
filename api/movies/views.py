@@ -26,9 +26,8 @@ class ListMoviesView(APIView):
         ],
         responses={200: MoviesSerializer(many=True)}
     )
-    
     def get(self, request, format=None):
-        """Faz uma busca pelo nome do filme e retorna os resultados."""
+        """Função responsável por fazer a busca no site IMDB e listar os resultados."""
         
         query = request.query_params.get('query', '')
         if not query:
@@ -41,9 +40,10 @@ class ListMoviesView(APIView):
 
 
 class DetailMovieView(CreateAPIView):
-    """Lista os detalhes do filme pela url."""
+    """Lista os detalhes do filme pela URL."""
     queryset = Movies.objects.all()
     serializer_class = DetailMovieSerializer
+    
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -55,9 +55,9 @@ class DetailMovieView(CreateAPIView):
         ],
         responses={200: DetailMovieSerializer},
     )
-     
     def get(self, request, format=None):
-        """Faz um request e lista os detalhes do filme pela url."""
+        """Função responsável por fazer o scraper do filme pela URL do IMDB e listar os detalhes."""
+        
         url = request.query_params.get('url', '')
         if not url:
             return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -72,6 +72,7 @@ class AddMovieView(ListCreateAPIView):
     """Adiciona o filme ao banco de dados."""
     queryset = Movies.objects.all()
     serializer_class = PersonalMovieListSerializer
+    
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -84,9 +85,9 @@ class AddMovieView(ListCreateAPIView):
         responses={201: 'Filme adicionado com sucesso', 400: 'Erro nos parâmetros',
                    409: 'Filme já existe', 401: 'Usuário não autorizado.'}
     )
-    
     def post(self, request, format=None):
         """Cria e salva o filme pela url no banco de dados."""
+        
         url = request.query_params.get('url', '')
         if not url:
             return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'}, status=status.HTTP_400_BAD_REQUEST)
@@ -124,5 +125,6 @@ class PersonalMovieListView(ModelViewSet):
     serializer_class = PersonalMovieListSerializer
     
     def get_queryset(self):
+        """Filtra os resultados dos filmes no banco de dados para serem respectivos ao usuário logado."""
         return self.queryset.filter(user=self.request.user).order_by('-id')
     

@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
     
 
 class AuthTokenSerializer(serializers.Serializer):
+    """Classe responsável por gerar tokens para o usuário cadastrado."""
     email = serializers.EmailField()
     password = serializers.CharField()
     

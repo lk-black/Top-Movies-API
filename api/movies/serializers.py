@@ -7,14 +7,15 @@ from app.models import Movies
 
 class PersonalMovieListSerializer(serializers.ModelSerializer):
     """Serializer para o model movies API."""
+    
     class Meta:
         model = Movies
         fields = ['id', 'name', 'description', 'rating', 'poster' , 'url' , 'datePublished', 'keywords', 'duration']
 
         
-        
 class MoviesSerializer(serializers.Serializer):
     """Serializa a lista de filmes encontrados."""
+    
     name = serializers.CharField()
     url = serializers.CharField()
     poster = serializers.CharField()
@@ -28,6 +29,7 @@ class MoviesSerializer(serializers.Serializer):
  
 class DetailMovieSerializer(serializers.Serializer):    
     """Serializa os detalhes de um filme especifico."""
+    
     name = serializers.CharField()
     description = serializers.CharField()
     rating = serializers.FloatField()
