@@ -13,6 +13,13 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'rating', 'poster' , 'url' , 'datePublished', 'keywords', 'duration']
     
     
+    def create(self, validated_data):
+        """Cria um novo filme no banco de dados."""
+        request = self.context.get('request')
+        user = request.user
+        return Movies.objects.create(**validated_data, user=user)
+        
+            
 class ScraperMovieSerializer(serializers.Serializer):
     """Serializer para a lista de filmes encontrados."""
     

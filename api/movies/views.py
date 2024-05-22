@@ -15,7 +15,7 @@ from app.models import Movies
 
     
 class MoviesAPIView(ModelViewSet):
-    """Viewset para os filmes que estão no banco de dados."""
+    """ViewSet para movies API."""
     queryset = Movies.objects.all()
     serializer_class = MovieSerializer
     
@@ -38,35 +38,18 @@ class MoviesAPIView(ModelViewSet):
     def create(self, request, *args, **kwargs):
         """Cria e retorna um novo filme pela sua URL do IMDB."""
         url = request.query_params.get('url', '')
-        if not url:
-            return Response({'error': 'Erro, o parâmetro url deve ser preenchido!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        
         if Movies.objects.filter(url=url).exists():
             return Response({'error': 'Filme já existe no banco de dados'}, status=status.HTTP_409_CONFLICT)
         
         imdb = ScrapperIMBD()
         movie_details = imdb.get(url=url)
-        if not movie_details:
-            return Response({'error': 'Filme não encontrado'}, status=status.HTTP_404_NOT_FOUND)
         
-        if not request.user.is_authenticated:
-            return Response({'error': 'Usuário não registrado'}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = MovieSerializer(data=movie_details, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         
-        movie = Movies(
-            user = request.user,
-            name=movie_details['name'],
-            url=movie_details['url'],
-            poster=movie_details['poster'],
-            description=movie_details['description'],
-            rating=movie_details['rating'],
-            datePublished=movie_details['datePublished'],
-            keywords=movie_details['keywords'],
-            duration=movie_details['duration'],
-        )
-        movie.save()
+        return Response(serializer.data)
         
-        return Response({'success': 'Filme adicionado com sucesso'}, status=status.HTTP_201_CREATED)
     
     @extend_schema(
     parameters=[

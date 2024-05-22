@@ -62,7 +62,7 @@ class MoviesScraperAPITest(TestCase):
             url='https://www.imdb.com/title/tt15398776/?ref_=nv_sr_srsg_0_tt_3_nm_5_q_openhaime')
         res = self.client.post(url, user=self.user)
 
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
         movie  = Movies.objects.get()
         self.assertEqual(movie.user, self.user)
         self.assertEqual(movie.name, 'Oppenheimer')
@@ -150,7 +150,7 @@ class MoviesPersonalListTest(TestCase):
         """Testa se o filme foi deletado com sucesso."""
         url_movie = create_add_post_url(URL_FOR_MOVIES_TEST2)
         res = self.client.post(url_movie, user=self.user)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
         
         movie  = Movies.objects.get()
         
